@@ -350,7 +350,11 @@ class TelegramClient:
         self.base_url = f"https://api.telegram.org/bot{token}"
         self.session = requests.Session()
 
-    def get_updates(self, offset: int | None, timeout: int = 30) -> list[dict[str, Any]]:
+    def get_updates(
+        self,
+        offset: int | None,
+        timeout: int = 30,
+    ) -> list[dict[str, Any]]:
         params: dict[str, Any] = {"timeout": timeout}
         if offset is not None:
             params["offset"] = offset
@@ -371,7 +375,12 @@ class TelegramClient:
         )
         response.raise_for_status()
 
-    def send_document(self, chat_id: int, path: Path, caption: str | None = None) -> None:
+    def send_document(
+        self,
+        chat_id: int,
+        path: Path,
+        caption: str | None = None,
+    ) -> None:
         data: dict[str, Any] = {"chat_id": chat_id}
         if caption:
             data["caption"] = caption
@@ -514,13 +523,15 @@ class CodexController:
             "/train_local <alias> - Start an approved local training job "
             "from a whitelist config.\n"
             "/approve [job_id] - Approve the pending job.\n"
-            "/approve_anyway [job_id] - Run a blocked job despite existing repo changes.\n"
+            "/approve_anyway [job_id] - Run a blocked job despite "
+            "existing repo changes.\n"
             "/deny [job_id] - Deny the pending job.\n"
             "/status - Show controller status.\n"
             "/cancel - Stop the running Codex job.\n"
             "/report - Resend the latest report.\n\n"
             "/approve only starts the job if the repo is clean.\n"
-            "/approve_anyway is required when the repo has existing uncommitted changes."
+            "/approve_anyway is required when the repo has existing "
+            "uncommitted changes."
         )
 
     def status_text(self) -> str:
@@ -640,7 +651,11 @@ class CodexController:
                     f"Reason: {risk_reason}"
                 )
 
-            status = "pending_approval" if risk_level in APPROVAL_RISK_LEVELS else "running"
+            status = (
+                "pending_approval"
+                if risk_level in APPROVAL_RISK_LEVELS
+                else "running"
+            )
             job = self._create_job(
                 chat_id,
                 project_key,
@@ -665,7 +680,10 @@ class CodexController:
     def start_local_train(self, chat_id: int, arg_text: str) -> str:
         alias = arg_text.strip().lower()
         if not alias:
-            return "Usage: /train_local <alias>\nAliases: " + self._local_train_alias_list()
+            return (
+                "Usage: /train_local <alias>\nAliases: "
+                + self._local_train_alias_list()
+            )
         if alias not in LOCAL_TRAIN_CONFIG_ALIASES:
             return (
                 f"Unknown local training alias: {alias}\n"
@@ -674,7 +692,10 @@ class CodexController:
 
         project_dir = self.config.projects.get(LOCAL_TRAIN_PROJECT_KEY)
         if project_dir is None:
-            return "Local training project is not configured. Missing project key: main"
+            return (
+                "Local training project is not configured. "
+                "Missing project key: main"
+            )
         project_dir = project_dir.resolve()
         if not project_dir.exists() or not project_dir.is_dir():
             return f"Local training project directory is not available: {project_dir}"
@@ -821,25 +842,35 @@ class CodexController:
         return f"Job denied.\nJob: {job.job_id}\nStatus: denied"
 
     def _approval_jobs_locked(self, allowed_statuses: set[str]) -> list[Job]:
-        if self.current_job is not None and self.current_job.status in allowed_statuses:
+        if (
+            self.current_job is not None
+            and self.current_job.status in allowed_statuses
+        ):
             return [self.current_job]
         return []
 
     def _resolve_approval_job_locked(
-        self, job_id: str, allowed_statuses: set[str], no_job_message: str
+        self,
+        job_id: str,
+        allowed_statuses: set[str],
+        no_job_message: str,
     ) -> tuple[Job | None, str | None]:
         pending_jobs = self._approval_jobs_locked(allowed_statuses)
         if not pending_jobs:
             if self.current_job is not None:
                 if self.current_job.status == "blocked_repo_dirty":
-                    return None, "Job is blocked_repo_dirty. Use /approve_anyway or /deny."
+                    return (
+                        None,
+                        "Job is blocked_repo_dirty. Use /approve_anyway or /deny.",
+                    )
                 return None, f"Job is {self.current_job.status}."
             return None, no_job_message
         if not job_id:
             if len(pending_jobs) > 1:
                 return (
                     None,
-                    "Multiple pending jobs found. Please use /approve <job_id> or /deny <job_id>.",
+                    "Multiple pending jobs found. Please use "
+                    "/approve <job_id> or /deny <job_id>.",
                 )
             return pending_jobs[0], None
         for job in pending_jobs:
@@ -856,7 +887,10 @@ class CodexController:
         if job.status == "pending_approval":
             return f"Job is pending approval. Use /deny {job.job_id} to deny it."
         if job.status == "blocked_repo_dirty":
-            return f"Job is blocked_repo_dirty. Use /approve_anyway or /deny {job.job_id}."
+            return (
+                "Job is blocked_repo_dirty. Use /approve_anyway "
+                f"or /deny {job.job_id}."
+            )
         if job.process is None:
             return "Job is starting. Try /cancel again."
         job.status = "cancelled"
@@ -1563,7 +1597,10 @@ def run_self_test() -> int:
             jobs_dir=jobs_dir,
             poll_interval_seconds=2,
         )
-        assert build_codex_command(cmd_config, ["--cd", str(project_dir), "prompt"]) == [
+        assert build_codex_command(
+            cmd_config,
+            ["--cd", str(project_dir), "prompt"],
+        ) == [
             "cmd.exe",
             "/c",
             str(tmp_root / "codex.cmd"),

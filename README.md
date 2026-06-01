@@ -60,15 +60,27 @@ names.
 
 Run and status flow:
 
-<img src="docs/assets/demo_run_status.svg" width="820" alt="Run status demo">
+<img
+  src="docs/assets/demo_run_status.svg"
+  width="820"
+  alt="Run status demo"
+>
 
 Approval and dirty repository flow:
 
-<img src="docs/assets/demo_approval_states.svg" width="820" alt="Approval states demo">
+<img
+  src="docs/assets/demo_approval_states.svg"
+  width="820"
+  alt="Approval states demo"
+>
 
 Report and artifact delivery:
 
-<img src="docs/assets/demo_report_delivery.svg" width="820" alt="Report delivery demo">
+<img
+  src="docs/assets/demo_report_delivery.svg"
+  width="820"
+  alt="Report delivery demo"
+>
 
 ## Install
 
