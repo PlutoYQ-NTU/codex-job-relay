@@ -289,7 +289,7 @@ def demo_report_delivery() -> str:
 
 def write_svg(name: str, content: str) -> None:
     ASSET_DIR.mkdir(parents=True, exist_ok=True)
-    (ASSET_DIR / name).write_text(content + "\n", encoding="utf-8")
+    (ASSET_DIR / name).write_bytes((content + "\n").encode("utf-8"))
 
 
 def main() -> int:
