@@ -52,6 +52,18 @@ a webhook server.
 - Telegram user allowlist via `TELEGRAM_ALLOWED_USER_ID`.
 - The controller does not accept arbitrary shell commands.
 
+## Demo
+
+These are generated mock previews, not real chat screenshots. They use example
+data only and do not include real tokens, user ids, local paths, or account
+names.
+
+![Run and status demo](docs/assets/demo_run_status.svg)
+
+![Approval states demo](docs/assets/demo_approval_states.svg)
+
+![Report delivery demo](docs/assets/demo_report_delivery.svg)
+
 ## Install
 
 ### 1. Create A Telegram Bot
@@ -234,4 +246,3 @@ py -m py_compile telegram_codex_controller\controller.py
 - HTML/PDF mobile report
 - GitHub Actions self-test
 - YAML job definitions
-

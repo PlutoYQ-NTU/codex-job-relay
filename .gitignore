@@ -6,7 +6,7 @@ __pycache__/
 *.log
 telegram_codex_controller/jobs/*
 !telegram_codex_controller/jobs/.gitkeep
+!docs/assets/*.svg
 ctsu-fox-upload/
 perlica-upload/
 pet_runs/
-

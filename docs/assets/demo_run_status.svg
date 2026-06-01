@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="760" viewBox="0 0 420 760">
+<rect width="100%" height="100%" fill="#eef3f8"/>
+<rect x="48" y="28" width="324" height="704" rx="36" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="136" y="41" width="148" height="20" rx="10" fill="#111827" opacity="0.88"/>
+<rect x="66" y="82" width="288" height="622" rx="22" fill="#e7eff7"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#0f172a"><tspan x="80" dy="0">Telegram demo preview</tspan></text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#64748b"><tspan x="80" dy="0">Mock workflow preview - not a real chat screenshot</tspan></text>
+<rect x="129" y="156" width="225" height="52" rx="14" fill="#dff6d7" stroke="#d7dee8" stroke-width="1"/><text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1f2937"><tspan x="141" dy="0">/run main inspect project and</tspan><tspan x="141" dy="16">report</tspan></text>
+<rect x="66" y="220" width="190" height="86" rx="14" fill="#ffffff" stroke="#d7dee8" stroke-width="1"/><text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1f2937"><tspan x="78" dy="0">running</tspan><tspan x="78" dy="16">Codex job started.</tspan><tspan x="78" dy="16">Job: job_20260602_101500</tspan><tspan x="78" dy="16">Project: main</tspan></text>
+<rect x="282" y="318" width="72" height="38" rx="14" fill="#dff6d7" stroke="#d7dee8" stroke-width="1"/><text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1f2937"><tspan x="294" dy="0">/status</tspan></text>
+<rect x="66" y="368" width="190" height="103" rx="14" fill="#ffffff" stroke="#d7dee8" stroke-width="1"/><text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1f2937"><tspan x="78" dy="0">running</tspan><tspan x="78" dy="16">Job: job_20260602_101500</tspan><tspan x="78" dy="16">Project: main</tspan><tspan x="78" dy="16">Risk: read_only</tspan><tspan x="78" dy="16">Runtime: 183s</tspan></text>
+<rect x="66" y="483" width="148" height="69" rx="14" fill="#f8fbff" stroke="#d7dee8" stroke-width="1"/><text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1f2937"><tspan x="78" dy="0">success</tspan><tspan x="78" dy="16">Codex job finished</tspan><tspan x="78" dy="16">Report attached.</tspan></text>
+<rect x="82" y="676" width="256" height="36" rx="18" fill="#ffffff" stroke="#d7dee8"/>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#94a3b8"><tspan x="100" dy="0">Message</tspan></text>
+</svg>
