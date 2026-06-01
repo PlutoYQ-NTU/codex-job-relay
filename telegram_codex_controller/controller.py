@@ -54,7 +54,7 @@ REMOTE_EXECUTION_CONSTRAINTS = """Remote execution constraints
   - .tmp/
   - .tmp_matt_skills/
   - .scratch/
-  - checkpoints/
+  - artifacts/
   - data/hf_cache/
   - data/processed/
   - data/tokenized/
@@ -65,7 +65,7 @@ REMOTE_EXECUTION_CONSTRAINTS = """Remote execution constraints
   - `git status --short`
   - `git ls-files`
   - `Get-ChildItem -Force` at the project root only
-- Do not read large files, model checkpoints, tokenized data, processed data, or historical output directories unless the user explicitly requests it.
+- Do not read large files, saved artifacts, tokenized data, processed data, or historical output directories unless the user explicitly requests it.
 - By default, finish the task with a structured Markdown report.
 """
 
@@ -88,7 +88,7 @@ TASK_EXECUTION_INSTRUCTIONS = """Remote agent execution requirements
 - Only list commands as "requires manual execution" when:
   - permission is insufficient
   - dependencies are missing
-  - required data or checkpoints are missing
+  - required data or artifacts are missing
   - the command would cross a safety boundary
   - the task is dangerous
   - the user explicitly asked to generate commands without running them
@@ -134,8 +134,6 @@ WRITE_WORKSPACE_KEYWORDS = (
 RUN_EXPENSIVE_KEYWORDS = (
     "训练",
     "train",
-    "finetune",
-    "pretrain",
     "evaluate all",
     "run full",
     "long run",
@@ -156,17 +154,13 @@ DANGEROUS_KEYWORDS = (
     "系统目录",
 )
 APPROVAL_RISK_LEVELS = {"write_workspace", "run_expensive"}
-KHARON_PROJECT_KEY = "gpt"
-KHARON_PYTHON_RELATIVE = Path(".venv") / "Scripts" / "python.exe"
-KHARON_TRAIN_SCRIPT_RELATIVE = Path("scripts") / "04_train.py"
-KHARON_CONFIG_ALIASES = {
-    "v05": Path("configs") / "kharon_300m_mixed_repair_pretrain_v05_from_v3_20260525.yaml",
-    "mixed_v05_from_v3": Path("configs")
-    / "kharon_300m_mixed_repair_pretrain_v05_from_v3_20260525.yaml",
-    "v3": Path("configs") / "kharon_300m_metadata_anti_leak_repair_v3_20260525.yaml",
-    "repair_v3": Path("configs") / "kharon_300m_repair_v03_20260524.yaml",
-    "targeted_repair": Path("configs")
-    / "kharon_300m_targeted_anti_leak_repair_20260525.yaml",
+LOCAL_TRAIN_PROJECT_KEY = "main"
+LOCAL_TRAIN_PYTHON_RELATIVE = Path(".venv") / "Scripts" / "python.exe"
+LOCAL_TRAIN_SCRIPT_RELATIVE = Path("scripts") / "train.py"
+LOCAL_TRAIN_CONFIG_ALIASES = {
+    "default": Path("configs") / "local_train.yaml",
+    "resume": Path("configs") / "local_train_resume.yaml",
+    "experiment": Path("configs") / "local_train_experiment.yaml",
 }
 
 
@@ -307,8 +301,12 @@ class Config:
             raise ValueError("danger-full-access is not allowed by this controller")
 
         projects = {
-            "gpt": resolve_config_path(os.getenv("PROJECT_GPT", r"D:\GPT_Development")),
-            "endoflip": resolve_config_path(os.getenv("PROJECT_ENDOFLIP", r"D:\EndoFLIP")),
+            "main": resolve_config_path(
+                os.getenv("PROJECT_MAIN", r"D:\LocalProject")
+            ),
+            "secondary": resolve_config_path(
+                os.getenv("PROJECT_SECONDARY", r"D:\OtherProject")
+            ),
         }
         jobs_dir = resolve_config_path(
             os.getenv("JOBS_DIR", r"telegram_codex_controller\jobs")
@@ -402,8 +400,8 @@ class Job:
     risk_level: str = "read_only"
     risk_reason: str = ""
     job_type: str = "codex"
-    kharon_alias: str = ""
-    kharon_config_path: str = ""
+    local_train_alias: str = ""
+    local_train_config_path: str = ""
     run_name: str = ""
     command_preview: list[str] = field(default_factory=list)
     blocked_reason: str = ""
@@ -424,8 +422,8 @@ class Job:
             "risk_level": self.risk_level,
             "risk_reason": self.risk_reason,
             "job_type": self.job_type,
-            "kharon_alias": self.kharon_alias,
-            "kharon_config_path": self.kharon_config_path,
+            "local_train_alias": self.local_train_alias,
+            "local_train_config_path": self.local_train_config_path,
             "run_name": self.run_name,
             "command_preview": self.command_preview,
             "blocked_reason": self.blocked_reason,
@@ -473,8 +471,8 @@ class CodexController:
             response = self.start_run(chat_id, arg_text)
             self._send(chat_id, response)
             return response
-        if command == "/train_kharon":
-            response = self.start_kharon_train(chat_id, arg_text)
+        if command == "/train_local":
+            response = self.start_local_train(chat_id, arg_text)
             self._send(chat_id, response)
             return response
         if command == "/approve":
@@ -507,8 +505,8 @@ class CodexController:
         return (
             "Available commands:\n"
             "/help - Show this help.\n"
-            "/run <project> <prompt> - Start a Codex job. Projects: gpt, endoflip.\n"
-            "/train_kharon <alias> - Start an approved Kharon training job from a whitelist config.\n"
+            "/run <project> <prompt> - Start a Codex job. Projects: main, secondary.\n"
+            "/train_local <alias> - Start an approved local training job from a whitelist config.\n"
             "/approve [job_id] - Approve the pending job.\n"
             "/approve_anyway [job_id] - Run a blocked job despite existing repo changes.\n"
             "/deny [job_id] - Deny the pending job.\n"
@@ -549,7 +547,7 @@ class CodexController:
                     "/approve_anyway\n"
                     "/deny"
                 )
-            if current.job_type == "kharon_train" and current.status == "running":
+            if current.job_type == "local_train" and current.status == "running":
                 started = datetime.fromisoformat(current.started_at)
                 runtime_seconds = max(
                     0,
@@ -563,8 +561,8 @@ class CodexController:
                 return (
                     "running\n"
                     f"Job: {current.job_id}\n"
-                    f"Alias: {current.kharon_alias}\n"
-                    f"Config: {current.kharon_config_path}\n"
+                    f"Alias: {current.local_train_alias}\n"
+                    f"Config: {current.local_train_config_path}\n"
                     f"Runtime: {runtime_seconds}s"
                 )
             started = datetime.fromisoformat(current.started_at)
@@ -601,9 +599,9 @@ class CodexController:
     def start_run(self, chat_id: int, arg_text: str) -> str:
         project_key, user_prompt = self._parse_run_args(arg_text)
         if not project_key or not user_prompt:
-            return "Usage: /run <project> <prompt>\nProjects: gpt, endoflip"
+            return "Usage: /run <project> <prompt>\nProjects: main, secondary"
         if project_key not in self.config.projects:
-            return "Unknown project. Allowed projects: gpt, endoflip"
+            return "Unknown project. Allowed projects: main, secondary"
 
         project_dir = self.config.projects[project_key].resolve()
         if not project_dir.exists() or not project_dir.is_dir():
@@ -658,37 +656,37 @@ class CodexController:
             f"Project: {job.project_key}"
         )
 
-    def start_kharon_train(self, chat_id: int, arg_text: str) -> str:
+    def start_local_train(self, chat_id: int, arg_text: str) -> str:
         alias = arg_text.strip().lower()
         if not alias:
-            return "Usage: /train_kharon <alias>\nAliases: " + self._kharon_alias_list()
-        if alias not in KHARON_CONFIG_ALIASES:
-            return f"Unknown Kharon alias: {alias}\nAliases: {self._kharon_alias_list()}"
+            return "Usage: /train_local <alias>\nAliases: " + self._local_train_alias_list()
+        if alias not in LOCAL_TRAIN_CONFIG_ALIASES:
+            return f"Unknown local training alias: {alias}\nAliases: {self._local_train_alias_list()}"
 
-        project_dir = self.config.projects.get(KHARON_PROJECT_KEY)
+        project_dir = self.config.projects.get(LOCAL_TRAIN_PROJECT_KEY)
         if project_dir is None:
-            return "Kharon project is not configured. Missing project key: gpt"
+            return "Local training project is not configured. Missing project key: main"
         project_dir = project_dir.resolve()
         if not project_dir.exists() or not project_dir.is_dir():
-            return f"Kharon project directory is not available: {project_dir}"
+            return f"Local training project directory is not available: {project_dir}"
 
-        config_path = (project_dir / KHARON_CONFIG_ALIASES[alias]).resolve()
+        config_path = (project_dir / LOCAL_TRAIN_CONFIG_ALIASES[alias]).resolve()
         if not config_path.exists() or not config_path.is_file():
-            return f"Kharon config file is missing: {config_path}"
+            return f"Local training config file is missing: {config_path}"
 
-        python_path = project_dir / KHARON_PYTHON_RELATIVE
+        python_path = project_dir / LOCAL_TRAIN_PYTHON_RELATIVE
         if not python_path.exists() or not python_path.is_file():
-            return f"Kharon Python executable is missing: {python_path}"
+            return f"Local training Python executable is missing: {python_path}"
 
-        train_script_path = project_dir / KHARON_TRAIN_SCRIPT_RELATIVE
+        train_script_path = project_dir / LOCAL_TRAIN_SCRIPT_RELATIVE
         if not train_script_path.exists() or not train_script_path.is_file():
-            return f"Kharon training script is missing: {train_script_path}"
+            return f"Local training script is missing: {train_script_path}"
 
-        run_name = self._kharon_run_name(alias)
+        run_name = self._local_train_run_name(alias)
         with self.lock:
             if self.current_job is not None:
                 return "A job is already running. Use /status or /cancel."
-            job = self._create_kharon_train_job(
+            job = self._create_local_train_job(
                 chat_id=chat_id,
                 project_dir=project_dir,
                 alias=alias,
@@ -699,7 +697,7 @@ class CodexController:
 
         return (
             self._approval_required_message(job)
-            + "\n\nKharon training request:\n"
+            + "\n\nLocal training request:\n"
             f"Alias: {alias}\n"
             f"Config: {config_path}\n"
             f"Run name: {run_name}"
@@ -781,10 +779,10 @@ class CodexController:
             job.save_metadata()
 
         self._start_job_thread(job)
-        if job.job_type == "kharon_train":
+        if job.job_type == "local_train":
             return (
                 "⚠️ Running despite existing repo changes.\n"
-                + self._kharon_training_started_message(job)
+                + self._local_training_started_message(job)
             )
         return (
             "⚠️ Running despite existing repo changes.\n"
@@ -854,8 +852,8 @@ class CodexController:
             return "Job is starting. Try /cancel again."
         job.status = "cancelled"
         self._terminate_process(job.process)
-        if job.job_type == "kharon_train":
-            return f"🛑 Kharon training cancelled\nJob: {job.job_id}"
+        if job.job_type == "local_train":
+            return f"🛑 Local training cancelled\nJob: {job.job_id}"
         return f"🛑 Codex job cancelled\nJob: {job.job_id}"
 
     def resend_report(self, chat_id: int) -> str:
@@ -923,7 +921,7 @@ class CodexController:
         job.save_metadata()
         return job
 
-    def _create_kharon_train_job(
+    def _create_local_train_job(
         self,
         chat_id: int,
         project_dir: Path,
@@ -952,17 +950,17 @@ class CodexController:
         write_text(
             prompt_path,
             (
-                "Kharon training request\n"
+                "Local training request\n"
                 f"Alias: {alias}\n"
                 f"Config: {config_path}\n"
                 f"Run name: {run_name}\n"
             ),
         )
-        write_text(codex_prompt_path, "Kharon training is run directly by the controller.\n")
+        write_text(codex_prompt_path, "Local training is run directly by the controller.\n")
 
         job = Job(
             job_id=job_id,
-            project_key=KHARON_PROJECT_KEY,
+            project_key=LOCAL_TRAIN_PROJECT_KEY,
             project_dir=project_dir,
             job_dir=job_dir,
             prompt_path=prompt_path,
@@ -976,23 +974,23 @@ class CodexController:
             chat_id=chat_id,
             status="pending_approval",
             risk_level="run_expensive",
-            risk_reason="Kharon training requires approval.",
-            job_type="kharon_train",
-            kharon_alias=alias,
-            kharon_config_path=str(config_path),
+            risk_reason="Local training requires approval.",
+            job_type="local_train",
+            local_train_alias=alias,
+            local_train_config_path=str(config_path),
             run_name=run_name,
         )
         job.save_metadata()
         return job
 
     @staticmethod
-    def _kharon_alias_list() -> str:
-        return ", ".join(sorted(KHARON_CONFIG_ALIASES))
+    def _local_train_alias_list() -> str:
+        return ", ".join(sorted(LOCAL_TRAIN_CONFIG_ALIASES))
 
     @staticmethod
-    def _kharon_run_name(alias: str) -> str:
+    def _local_train_run_name(alias: str) -> str:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        return f"kharon_{alias}_{timestamp}"
+        return f"local_train_{alias}_{timestamp}"
 
     @staticmethod
     def _approval_required_message(job: Job) -> str:
@@ -1032,8 +1030,8 @@ class CodexController:
         )
 
     def _job_started_message(self, job: Job) -> str:
-        if job.job_type == "kharon_train":
-            return self._kharon_training_started_message(job)
+        if job.job_type == "local_train":
+            return self._local_training_started_message(job)
         return (
             "running\n"
             "Codex job approved and started.\n"
@@ -1043,12 +1041,12 @@ class CodexController:
         )
 
     @staticmethod
-    def _kharon_training_started_message(job: Job) -> str:
+    def _local_training_started_message(job: Job) -> str:
         return (
-            "🚀 Kharon training started\n"
+            "🚀 Local training started\n"
             f"Job: {job.job_id}\n"
-            f"Alias: {job.kharon_alias}\n"
-            f"Config: {job.kharon_config_path}\n"
+            f"Alias: {job.local_train_alias}\n"
+            f"Config: {job.local_train_config_path}\n"
             f"Run name: {job.run_name}"
         )
 
@@ -1138,8 +1136,8 @@ class CodexController:
         write_text(job.diff_stat_path, output + "\n" if output else "(no diff)\n")
 
     def _run_job(self, job: Job) -> None:
-        if job.job_type == "kharon_train":
-            self._run_kharon_training(job)
+        if job.job_type == "local_train":
+            self._run_local_training(job)
             return
 
         prompt_text = job.codex_prompt_path.read_text(encoding="utf-8")
@@ -1199,14 +1197,14 @@ class CodexController:
         if job.chat_id is not None and job.status != "cancelled":
             self._notify_job_finished(job)
 
-    def _run_kharon_training(self, job: Job) -> None:
-        python_path = job.project_dir / KHARON_PYTHON_RELATIVE
-        train_script = str(KHARON_TRAIN_SCRIPT_RELATIVE)
+    def _run_local_training(self, job: Job) -> None:
+        python_path = job.project_dir / LOCAL_TRAIN_PYTHON_RELATIVE
+        train_script = str(LOCAL_TRAIN_SCRIPT_RELATIVE)
         command = [
             str(python_path),
             train_script,
             "--config",
-            job.kharon_config_path,
+            job.local_train_config_path,
             "--run-name",
             job.run_name,
         ]
@@ -1244,16 +1242,16 @@ class CodexController:
         job.returncode = returncode
         job.ended_at = utc_now_iso()
         job.save_metadata()
-        self._write_kharon_training_report(job, command, started)
+        self._write_local_training_report(job, command, started)
 
         with self.lock:
             self.current_job = None
             self.last_job = job
 
         if job.chat_id is not None and job.status != "cancelled":
-            self._notify_kharon_training_finished(job)
+            self._notify_local_training_finished(job)
 
-    def _write_kharon_training_report(
+    def _write_local_training_report(
         self, job: Job, command: list[str], started: datetime
     ) -> None:
         ended = datetime.fromisoformat(job.ended_at) if job.ended_at else datetime.now(timezone.utc)
@@ -1264,18 +1262,17 @@ class CodexController:
         stdout_tail = tail_text(job.stdout_path, max_lines=80)
         stderr_tail = tail_text(job.stderr_path, max_lines=80)
         possible_paths = [
-            str(job.project_dir / "checkpoints"),
             str(job.project_dir / "outputs"),
             f"Search for run name: {job.run_name}",
         ]
         report = (
-            "# Kharon Training Report\n\n"
+            "# Local Training Report\n\n"
             "## 1. Task Summary\n"
-            "Kharon training was launched directly by the Telegram controller.\n\n"
+            "Local training was launched directly by the Telegram controller.\n\n"
             "## 2. Alias\n"
-            f"{job.kharon_alias}\n\n"
+            f"{job.local_train_alias}\n\n"
             "## 3. Config path\n"
-            f"{job.kharon_config_path}\n\n"
+            f"{job.local_train_config_path}\n\n"
             "## 4. Run name\n"
             f"{job.run_name}\n\n"
             "## 5. Command executed\n"
@@ -1296,13 +1293,13 @@ class CodexController:
             "```text\n"
             f"{stderr_tail or '(empty)'}\n"
             "```\n\n"
-            "## 10. Possible checkpoint/output paths\n"
+            "## 10. Possible output paths\n"
             + "\n".join(f"- {path}" for path in possible_paths)
             + "\n\n"
             "## 11. Suggested next steps\n"
             "- Inspect the stdout/stderr tails above.\n"
-            "- Check the run output or checkpoint path matching the run name.\n"
-            "- Run the relevant anti-leak evaluation before promoting a checkpoint.\n"
+            "- Check the run output path matching the run name.\n"
+            "- Run the relevant validation before promoting an output artifact.\n"
         )
         write_text_utf8_sig(job.report_path, report)
 
@@ -1343,11 +1340,11 @@ class CodexController:
             self._send_report_document(job.chat_id, job)
         self._send_diff_stat_summary(job)
 
-    def _notify_kharon_training_finished(self, job: Job) -> None:
+    def _notify_local_training_finished(self, job: Job) -> None:
         if job.status == "success":
-            title = "✅ Kharon training finished"
+            title = "✅ Local training finished"
         else:
-            title = "❌ Kharon training failed"
+            title = "❌ Local training failed"
         stdout_tail = tail_text(job.stdout_path, max_lines=80)
         stderr_tail = tail_text(job.stderr_path, max_lines=80)
         summary_tail = stdout_tail if job.status == "success" and stdout_tail else stderr_tail
@@ -1357,7 +1354,7 @@ class CodexController:
             job.chat_id,
             f"{title}\n"
             f"Job: {job.job_id}\n"
-            f"Alias: {job.kharon_alias}\n"
+            f"Alias: {job.local_train_alias}\n"
             f"Run name: {job.run_name}\n"
             f"Return code: {job.returncode}\n\n"
             "Log summary:\n"
@@ -1401,8 +1398,8 @@ class CodexController:
                 continue
             job_dir = metadata_path.parent
             job_type = metadata.get("job_type", "codex")
-            stdout_name = "train_stdout.log" if job_type == "kharon_train" else "stdout.log"
-            stderr_name = "train_stderr.log" if job_type == "kharon_train" else "stderr.log"
+            stdout_name = "train_stdout.log" if job_type == "local_train" else "stdout.log"
+            stderr_name = "train_stderr.log" if job_type == "local_train" else "stderr.log"
             return Job(
                 job_id=metadata.get("job_id", job_dir.name),
                 project_key=metadata.get("project_key", ""),
@@ -1420,8 +1417,8 @@ class CodexController:
                 risk_level=metadata.get("risk_level", "read_only"),
                 risk_reason=metadata.get("risk_reason", ""),
                 job_type=job_type,
-                kharon_alias=metadata.get("kharon_alias", ""),
-                kharon_config_path=metadata.get("kharon_config_path", ""),
+                local_train_alias=metadata.get("local_train_alias", ""),
+                local_train_config_path=metadata.get("local_train_config_path", ""),
                 run_name=metadata.get("run_name", ""),
                 command_preview=metadata.get("command_preview", []),
                 blocked_reason=metadata.get("blocked_reason", ""),
@@ -1514,20 +1511,20 @@ def run_self_test() -> int:
         jobs_dir = tmp_root / "jobs"
         project_dir.mkdir()
         (project_dir / "configs").mkdir()
-        for config_relative_path in set(KHARON_CONFIG_ALIASES.values()):
+        for config_relative_path in set(LOCAL_TRAIN_CONFIG_ALIASES.values()):
             write_text(project_dir / config_relative_path, "name: test\n")
         (project_dir / ".venv" / "Scripts").mkdir(parents=True)
-        write_text(project_dir / KHARON_PYTHON_RELATIVE, "")
+        write_text(project_dir / LOCAL_TRAIN_PYTHON_RELATIVE, "")
         (project_dir / "scripts").mkdir()
-        write_text(project_dir / KHARON_TRAIN_SCRIPT_RELATIVE, "print('train')\n")
+        write_text(project_dir / LOCAL_TRAIN_SCRIPT_RELATIVE, "print('train')\n")
         config = Config(
             telegram_bot_token="test-token",
             telegram_allowed_user_id=123,
             codex_command="codex",
             default_sandbox="workspace-write",
             projects={
-                "gpt": project_dir,
-                "endoflip": project_dir,
+                "main": project_dir,
+                "secondary": project_dir,
             },
             jobs_dir=jobs_dir,
             poll_interval_seconds=2,
@@ -1605,13 +1602,13 @@ def run_self_test() -> int:
             {"chat": {"id": 1}, "from": {"id": 123}, "text": "/help"}
         )
         unauthorized = controller.handle_message(
-            {"chat": {"id": 1}, "from": {"id": 999}, "text": "/run gpt test"}
+            {"chat": {"id": 1}, "from": {"id": 999}, "text": "/run main test"}
         )
         status = controller.handle_message(
             {"chat": {"id": 1}, "from": {"id": 123}, "text": "/status"}
         )
         assert help_response and "/run <project> <prompt>" in help_response
-        assert "/train_kharon <alias>" in help_response
+        assert "/train_local <alias>" in help_response
         assert "/approve [job_id]" in help_response
         assert "/approve_anyway [job_id]" in help_response
         assert "/deny [job_id]" in help_response
@@ -1626,12 +1623,12 @@ def run_self_test() -> int:
         ) == "No pending approval job."
 
         train_pending = controller.handle_message(
-            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/train_kharon v05"}
+            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/train_local default"}
         )
         assert train_pending and "Approval required" in train_pending
-        assert "Kharon training request" in train_pending
+        assert "Local training request" in train_pending
         assert controller.current_job is not None
-        assert controller.current_job.job_type == "kharon_train"
+        assert controller.current_job.job_type == "local_train"
         assert controller.current_job.status == "pending_approval"
         assert controller.current_job.risk_level == "run_expensive"
         assert controller.current_job.stdout_path.name == "train_stdout.log"
@@ -1640,9 +1637,9 @@ def run_self_test() -> int:
         train_started = controller.handle_message(
             {"chat": {"id": 1}, "from": {"id": 123}, "text": "/approve"}
         )
-        assert train_started and "Kharon training started" in train_started
+        assert train_started and "Local training started" in train_started
         assert f"Job: {train_job_id}" in train_started
-        assert "Alias: v05" in train_started
+        assert "Alias: default" in train_started
         assert controller.started_jobs == [train_job_id]
         assert controller.current_job is not None
         assert controller.current_job.status == "running"
@@ -1650,21 +1647,21 @@ def run_self_test() -> int:
             {"chat": {"id": 1}, "from": {"id": 123}, "text": "/status"}
         )
         assert train_status and train_status.startswith("running")
-        assert "Alias: v05" in train_status
+        assert "Alias: default" in train_status
         assert "Runtime:" in train_status
 
         controller = new_controller()
-        missing_config = project_dir / KHARON_CONFIG_ALIASES["v3"]
+        missing_config = project_dir / LOCAL_TRAIN_CONFIG_ALIASES["resume"]
         missing_config.unlink()
         missing_response = controller.handle_message(
-            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/train_kharon v3"}
+            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/train_local resume"}
         )
-        assert missing_response and "Kharon config file is missing" in missing_response
+        assert missing_response and "Local training config file is missing" in missing_response
         write_text(missing_config, "name: test\n")
 
         controller = new_dirty_controller()
         train_pending = controller.handle_message(
-            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/train_kharon repair_v3"}
+            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/train_local experiment"}
         )
         assert train_pending and "Approval required" in train_pending
         assert controller.current_job is not None
@@ -1678,12 +1675,12 @@ def run_self_test() -> int:
         train_started_anyway = controller.handle_message(
             {"chat": {"id": 1}, "from": {"id": 123}, "text": "/approve_anyway"}
         )
-        assert train_started_anyway and "Kharon training started" in train_started_anyway
+        assert train_started_anyway and "Local training started" in train_started_anyway
         assert controller.started_jobs == [train_job_id]
 
         controller = new_controller()
         pending = controller.handle_message(
-            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/run gpt modify README"}
+            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/run main modify README"}
         )
         assert pending and "Approval required" in pending
         assert "Reply:\n/approve\nor\n/deny" in pending
@@ -1701,7 +1698,7 @@ def run_self_test() -> int:
 
         controller = new_controller()
         pending = controller.handle_message(
-            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/run gpt modify README"}
+            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/run main modify README"}
         )
         assert pending and "Approval required" in pending
         assert controller.current_job is not None
@@ -1714,7 +1711,7 @@ def run_self_test() -> int:
 
         controller = new_controller()
         pending = controller.handle_message(
-            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/run gpt modify README"}
+            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/run main modify README"}
         )
         assert pending and "Approval required" in pending
         assert controller.current_job is not None
@@ -1727,7 +1724,7 @@ def run_self_test() -> int:
 
         controller = new_controller()
         pending = controller.handle_message(
-            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/run gpt modify README"}
+            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/run main modify README"}
         )
         assert pending and "Approval required" in pending
         assert controller.current_job is not None
@@ -1740,7 +1737,7 @@ def run_self_test() -> int:
 
         controller = new_dirty_controller()
         pending = controller.handle_message(
-            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/run gpt modify README"}
+            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/run main modify README"}
         )
         assert pending and "Approval required" in pending
         assert controller.current_job is not None
@@ -1779,7 +1776,7 @@ def run_self_test() -> int:
 
         controller = new_dirty_controller()
         pending = controller.handle_message(
-            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/run gpt modify README"}
+            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/run main modify README"}
         )
         assert pending and "Approval required" in pending
         assert controller.current_job is not None
@@ -1796,14 +1793,14 @@ def run_self_test() -> int:
 
         controller = new_controller()
         rejected = controller.handle_message(
-            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/run gpt rm -rf outputs"}
+            {"chat": {"id": 1}, "from": {"id": 123}, "text": "/run main rm -rf outputs"}
         )
         assert rejected and "Task rejected" in rejected
 
         controller = new_controller()
         report_job = controller._create_job(
             chat_id=1,
-            project_key="gpt",
+            project_key="main",
             project_dir=project_dir,
             user_prompt="inspect",
             risk_level="read_only",
@@ -1823,7 +1820,7 @@ def run_self_test() -> int:
 
         fallback_job = controller._create_job(
             chat_id=1,
-            project_key="gpt",
+            project_key="main",
             project_dir=project_dir,
             user_prompt="inspect",
             risk_level="read_only",

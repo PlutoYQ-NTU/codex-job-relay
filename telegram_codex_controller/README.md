@@ -3,9 +3,8 @@
 Mobile-first local job controller for Codex-assisted long-running workflows.
 
 `codex-job-relay` lets you start, approve, monitor, cancel, and receive reports
-for local long-running jobs from Telegram. It is built for research and ML work
-where the useful unit is a job: training, evaluation, benchmark, repair run, or
-artifact-producing workflow.
+for local long-running jobs from Telegram. It is built for work where the useful
+unit is a job: training, evaluation, benchmark, or artifact-producing workflow.
 
 It is not a normal Telegram Codex chat bridge, and it is not a replacement for
 the official Codex App. The relay is job-first, not thread-first.
@@ -36,8 +35,7 @@ a webhook server.
 ## Current Features
 
 - `/run <project> <prompt>` starts a Codex-assisted job in a whitelisted project.
-- `/train_kharon <alias>` starts a whitelisted local Kharon training job after
-  approval.
+- `/train_local <alias>` starts a whitelisted local training job after approval.
 - `/status` shows active job state, project, risk, runtime, and next action.
 - `/cancel` terminates the active subprocess.
 - `/report` resends the latest report.
@@ -82,8 +80,8 @@ TELEGRAM_BOT_TOKEN=
 TELEGRAM_ALLOWED_USER_ID=
 CODEX_COMMAND=C:\Users\<YOU>\AppData\Roaming\npm\codex.cmd
 DEFAULT_SANDBOX=workspace-write
-PROJECT_GPT=D:\GPT_Development
-PROJECT_ENDOFLIP=D:\EndoFLIP
+PROJECT_MAIN=D:\LocalProject
+PROJECT_SECONDARY=D:\OtherProject
 JOBS_DIR=D:\Documents\codex controller\telegram_codex_controller\jobs
 POLL_INTERVAL_SECONDS=2
 ```
@@ -112,7 +110,7 @@ py telegram_codex_controller\controller.py
 ```text
 /help
 /run <project> <prompt>
-/train_kharon <alias>
+/train_local <alias>
 /status
 /cancel
 /report
@@ -148,32 +146,29 @@ untracked changes.
   safe read-only checks, but must not start training.
 - `write_workspace`: modify code or config inside the workspace. Long training
   should not start unless the user explicitly requested it.
-- `run_expensive`: training, finetuning, full evaluation, benchmark, or long
-  run. Approval is required.
+- `run_expensive`: training, full evaluation, benchmark, or long run. Approval
+  is required.
 - `dangerous`: destructive or secret-related requests are rejected before Codex
   starts.
 
 ## Whitelist Local Jobs
 
-`/train_kharon <alias>` is a local whitelist job for Kharon training under
-`D:\GPT_Development`.
+`/train_local <alias>` is a local whitelist job for training a local model.
 
-Supported aliases:
+Default example aliases:
 
 ```text
-v05
-mixed_v05_from_v3
-v3
-repair_v3
-targeted_repair
+default
+resume
+experiment
 ```
 
-This command is for Kharon project remote training. It is not a TinyStories
-smoke test. It does not accept arbitrary shell commands or arbitrary config
-paths. The controller starts the local Python process directly:
+Aliases map only to controller-defined config files. Users cannot pass arbitrary
+config paths or shell commands. The controller starts the local Python process
+directly:
 
 ```powershell
-D:\GPT_Development\.venv\Scripts\python.exe scripts\04_train.py --config <config> --run-name <run_name>
+<project>\.venv\Scripts\python.exe scripts\train.py --config <config> --run-name <run_name>
 ```
 
 ## Job Files
@@ -194,7 +189,7 @@ jobs/job_YYYYMMDD_HHMMSS/
   metadata.json
 ```
 
-Codex jobs use `stdout.log` and `stderr.log`. Kharon training jobs use
+Codex jobs use `stdout.log` and `stderr.log`. Local training jobs use
 `train_stdout.log` and `train_stderr.log`.
 
 ## Security Boundaries
@@ -205,7 +200,7 @@ Codex jobs use `stdout.log` and `stderr.log`. Kharon training jobs use
 - `.env` is ignored and must not be committed.
 - Arbitrary shell commands are not accepted.
 - Project paths are selected from config, not Telegram input.
-- `/train_kharon` accepts whitelist aliases only.
+- `/train_local` accepts whitelist aliases only.
 - Write and long-running jobs require approval.
 - Dirty repos become `blocked_repo_dirty`.
 - `/approve_anyway` requires explicit user action.
