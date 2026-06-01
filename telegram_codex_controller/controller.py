@@ -1,3 +1,5 @@
+"""Telegram-driven local job controller for trusted long-running workflows."""
+
 from __future__ import annotations
 
 import argparse

@@ -10,6 +10,10 @@ artifact-producing automation.
 It is not a normal Telegram Codex chat bridge, and it is not a replacement for
 the official Codex App. The relay is job-first, not thread-first.
 
+The project is intentionally small. It is meant to run on a trusted local
+machine, poll Telegram for commands, launch only known local jobs, and return
+mobile-readable reports and artifacts.
+
 ## Why This Exists
 
 - The official Codex App is useful at the desk, but mobile report/artifact
@@ -32,6 +36,34 @@ Telegram Mobile
 
 The controller uses Telegram long polling. It does not open a public port or run
 a webhook server.
+
+## Repository Layout
+
+```text
+codex-job-relay/
+  README.md
+  SECURITY.md
+  LICENSE
+  .gitattributes
+  .gitignore
+  docs/
+    assets/
+      demo_run_status.svg
+      demo_approval_states.svg
+      demo_report_delivery.svg
+  examples/
+    sample_report_telegram.md
+    job_config.example.yaml
+  scripts/
+    generate_demo_assets.py
+  telegram_codex_controller/
+    controller.py
+    config.example.env
+    requirements.txt
+    README.md
+    jobs/
+      .gitkeep
+```
 
 ## Features
 
