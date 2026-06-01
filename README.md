@@ -58,11 +58,17 @@ These are generated mock previews, not real chat screenshots. They use example
 data only and do not include real tokens, user ids, local paths, or account
 names.
 
-![Run and status demo](docs/assets/demo_run_status.svg)
+Run and status flow:
 
-![Approval states demo](docs/assets/demo_approval_states.svg)
+<img src="docs/assets/demo_run_status.svg" width="820" alt="Run status demo">
 
-![Report delivery demo](docs/assets/demo_report_delivery.svg)
+Approval and dirty repository flow:
+
+<img src="docs/assets/demo_approval_states.svg" width="820" alt="Approval states demo">
+
+Report and artifact delivery:
+
+<img src="docs/assets/demo_report_delivery.svg" width="820" alt="Report delivery demo">
 
 ## Install
 

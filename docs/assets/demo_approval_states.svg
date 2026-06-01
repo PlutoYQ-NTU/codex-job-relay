@@ -1,16 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="420" height="760" viewBox="0 0 420 760">
-<rect width="100%" height="100%" fill="#eef3f8"/>
-<rect x="48" y="28" width="324" height="704" rx="36" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
-<rect x="136" y="41" width="148" height="20" rx="10" fill="#111827" opacity="0.88"/>
-<rect x="66" y="82" width="288" height="622" rx="22" fill="#e7eff7"/>
-<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#0f172a"><tspan x="80" dy="0">Mock workflow preview</tspan></text>
-<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#64748b"><tspan x="80" dy="0">Approval state machine with a dirty repo block</tspan></text>
-<rect x="150" y="156" width="204" height="52" rx="14" fill="#dff6d7" stroke="#d7dee8" stroke-width="1"/><text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1f2937"><tspan x="162" dy="0">/run main update benchmark</tspan><tspan x="162" dy="16">config</tspan></text>
-<rect x="66" y="220" width="162" height="103" rx="14" fill="#ffffff" stroke="#d7dee8" stroke-width="1"/><text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1f2937"><tspan x="78" dy="0">pending_approval</tspan><tspan x="78" dy="16">Job has NOT started.</tspan><tspan x="78" dy="16">Options:</tspan><tspan x="78" dy="16">/approve</tspan><tspan x="78" dy="16">/deny</tspan></text>
-<rect x="276" y="335" width="78" height="38" rx="14" fill="#dff6d7" stroke="#d7dee8" stroke-width="1"/><text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1f2937"><tspan x="288" dy="0">/approve</tspan></text>
-<rect x="66" y="385" width="204" height="154" rx="14" fill="#fff7ed" stroke="#d7dee8" stroke-width="1"/><text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1f2937"><tspan x="78" dy="0">blocked_repo_dirty</tspan><tspan x="78" dy="16">Job has NOT started.</tspan><tspan x="78" dy="16">Reason:</tspan><tspan x="78" dy="16">repository has uncommitted</tspan><tspan x="78" dy="16">changes</tspan><tspan x="78" dy="16">Options:</tspan><tspan x="78" dy="16">/approve_anyway</tspan><tspan x="78" dy="16">/deny</tspan></text>
-<rect x="227" y="551" width="127" height="38" rx="14" fill="#dff6d7" stroke="#d7dee8" stroke-width="1"/><text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1f2937"><tspan x="239" dy="0">/approve_anyway</tspan></text>
-<rect x="66" y="601" width="190" height="69" rx="14" fill="#ffffff" stroke="#d7dee8" stroke-width="1"/><text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1f2937"><tspan x="78" dy="0">running</tspan><tspan x="78" dy="16">Job: job_20260602_102300</tspan><tspan x="78" dy="16">Risk: write_workspace</tspan></text>
-<rect x="82" y="676" width="256" height="36" rx="18" fill="#ffffff" stroke="#d7dee8"/>
-<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#94a3b8"><tspan x="100" dy="0">Message</tspan></text>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420" role="img" aria-label="Mock workflow preview">
+<rect x="0" y="0" width="900" height="420" fill="#eef3f8"/>
+<rect x="24" y="24" width="852" height="372" rx="28" fill="#ffffff" stroke="#cfd9e6" stroke-width="1"/>
+<text x="52" y="64" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#172033">Mock workflow preview</text>
+<text x="52" y="90" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#64748b">Write tasks require one approval and dirty repos require explicit override.</text>
+<text x="52" y="114" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#64748b">Generated mock preview. No real chat data.</text>
+<rect x="52" y="142" width="380" height="80" rx="18" fill="#ecfdf5" stroke="#d8e1ec" stroke-width="1"/>
+<text x="74" y="169" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#64748b">User command</text>
+<text x="74" y="200" font-family="Consolas, Menlo, monospace" font-size="15" fill="#172033">/run main update README</text>
+<rect x="468" y="142" width="380" height="124" rx="18" fill="#fff7ed" stroke="#d8e1ec" stroke-width="1"/>
+<text x="490" y="169" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#64748b">Bot response</text>
+<text x="490" y="200" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#172033">⚠️ Approval required</text>
+<text x="490" y="222" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#172033">Risk: write_workspace</text>
+<text x="490" y="244" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#172033">Options: /approve or /deny</text>
+<rect x="52" y="288" width="796" height="116" rx="18" fill="#ffffff" stroke="#d8e1ec" stroke-width="1"/>
+<text x="74" y="318" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#64748b">Outcome</text>
+<text x="74" y="347" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#172033">blocked_repo_dirty</text>
+<text x="74" y="369" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#172033">If the repo is dirty, approval is blocked until the user chooses.</text>
+<text x="74" y="391" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#172033">Options: /approve_anyway or /deny</text>
+<rect x="326" y="304" width="152" height="28" rx="14" fill="#fef3c7" stroke="none" stroke-width="1"/>
+<text x="338" y="323" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#172033">pending approval</text>
+<rect x="488" y="304" width="168" height="28" rx="14" fill="#fee2e2" stroke="none" stroke-width="1"/>
+<text x="500" y="323" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#172033">blocked_repo_dirty</text>
+<rect x="666" y="304" width="160" height="28" rx="14" fill="#e0e7ff" stroke="none" stroke-width="1"/>
+<text x="678" y="323" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#172033">explicit override</text>
 </svg>
