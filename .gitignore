@@ -1,0 +1,12 @@
+.env
+*.env
+.venv/
+__pycache__/
+.codex/
+*.log
+telegram_codex_controller/jobs/*
+!telegram_codex_controller/jobs/.gitkeep
+ctsu-fox-upload/
+perlica-upload/
+pet_runs/
+

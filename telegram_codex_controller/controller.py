@@ -65,7 +65,8 @@ REMOTE_EXECUTION_CONSTRAINTS = """Remote execution constraints
   - `git status --short`
   - `git ls-files`
   - `Get-ChildItem -Force` at the project root only
-- Do not read large files, saved artifacts, tokenized data, processed data, or historical output directories unless the user explicitly requests it.
+- Do not read large files, saved artifacts, tokenized data, processed data, or
+  historical output directories unless the user explicitly requests it.
 - By default, finish the task with a structured Markdown report.
 """
 
@@ -83,7 +84,9 @@ For this approved write or long-running task, the final Markdown report must inc
 TASK_EXECUTION_INSTRUCTIONS = """Remote agent execution requirements
 
 - Current risk level: {risk_level}
-- If the user task requires running a project script, and that operation is allowed by the current risk level and sandbox, run it directly. Do not only give the user the command.
+- If the user task requires running a project script, and that operation is
+  allowed by the current risk level and sandbox, run it directly. Do not only
+  give the user the command.
 - Do not leave critical task steps for the user to run manually.
 - Only list commands as "requires manual execution" when:
   - permission is insufficient
@@ -98,9 +101,11 @@ TASK_EXECUTION_INSTRUCTIONS = """Remote agent execution requirements
   - the directory that could not be written
   - whether a temporary-directory fallback was used
   - the temporary-directory path
-- For run_expensive tasks that the user approved, training or evaluation scripts may be run directly.
+- For run_expensive tasks that the user approved, training or evaluation scripts
+  may be run directly.
 - For read_only tasks, do not start training. Only inspect, analyze, and report.
-- For write_workspace tasks, code or configuration may be changed, but long training should not be started unless the user explicitly requested it.
+- For write_workspace tasks, code or configuration may be changed, but long
+  training should not be started unless the user explicitly requested it.
 """
 
 READ_ONLY_KEYWORDS = (
@@ -506,7 +511,8 @@ class CodexController:
             "Available commands:\n"
             "/help - Show this help.\n"
             "/run <project> <prompt> - Start a Codex job. Projects: main, secondary.\n"
-            "/train_local <alias> - Start an approved local training job from a whitelist config.\n"
+            "/train_local <alias> - Start an approved local training job "
+            "from a whitelist config.\n"
             "/approve [job_id] - Approve the pending job.\n"
             "/approve_anyway [job_id] - Run a blocked job despite existing repo changes.\n"
             "/deny [job_id] - Deny the pending job.\n"
@@ -661,7 +667,10 @@ class CodexController:
         if not alias:
             return "Usage: /train_local <alias>\nAliases: " + self._local_train_alias_list()
         if alias not in LOCAL_TRAIN_CONFIG_ALIASES:
-            return f"Unknown local training alias: {alias}\nAliases: {self._local_train_alias_list()}"
+            return (
+                f"Unknown local training alias: {alias}\n"
+                f"Aliases: {self._local_train_alias_list()}"
+            )
 
         project_dir = self.config.projects.get(LOCAL_TRAIN_PROJECT_KEY)
         if project_dir is None:
@@ -1254,10 +1263,19 @@ class CodexController:
     def _write_local_training_report(
         self, job: Job, command: list[str], started: datetime
     ) -> None:
-        ended = datetime.fromisoformat(job.ended_at) if job.ended_at else datetime.now(timezone.utc)
+        ended = (
+            datetime.fromisoformat(job.ended_at)
+            if job.ended_at
+            else datetime.now(timezone.utc)
+        )
         duration_seconds = max(
             0,
-            int((ended.astimezone(timezone.utc) - started.astimezone(timezone.utc)).total_seconds()),
+            int(
+                (
+                    ended.astimezone(timezone.utc)
+                    - started.astimezone(timezone.utc)
+                ).total_seconds()
+            ),
         )
         stdout_tail = tail_text(job.stdout_path, max_lines=80)
         stderr_tail = tail_text(job.stderr_path, max_lines=80)

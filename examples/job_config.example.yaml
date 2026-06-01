@@ -1,0 +1,24 @@
+# Example future whitelist job definition.
+# This file is documentation only; the current controller uses in-code aliases.
+
+alias: example_training_job
+description: Run a local training entrypoint from a whitelisted project.
+risk_level: run_expensive
+project_key: main
+command:
+  executable: .venv/Scripts/python.exe
+  args:
+    - scripts/train.py
+    - --config
+    - configs/local_train.yaml
+    - --run-name
+    - "{run_name}"
+approval:
+  require_clean_git: true
+artifacts:
+  include:
+    - report.md
+    - report_telegram.md
+    - train_stdout.log
+    - train_stderr.log
+
