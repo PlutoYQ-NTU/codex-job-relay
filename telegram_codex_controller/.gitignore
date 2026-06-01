@@ -2,3 +2,6 @@
 jobs/*
 !jobs/.gitkeep
 *.log
+__pycache__/
+.venv/
+.codex/
