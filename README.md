@@ -138,6 +138,21 @@ POLL_INTERVAL_SECONDS=2
 
 Do not commit `.env`.
 
+### Configuration Reference
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `TELEGRAM_BOT_TOKEN` | Yes | Bot token created through BotFather. Keep private. |
+| `TELEGRAM_ALLOWED_USER_ID` | Yes | Numeric Telegram user id allowed to control jobs. |
+| `CODEX_COMMAND` | Yes | Local Codex command path, such as `codex.cmd` on Windows. |
+| `DEFAULT_SANDBOX` | No | Codex sandbox mode used for jobs. Default should remain conservative. |
+| `PROJECT_MAIN` | Yes | Whitelisted local project path for `/run main ...`. |
+| `PROJECT_SECONDARY` | No | Optional second whitelisted local project path. |
+| `JOBS_DIR` | No | Local directory for prompts, logs, metadata, reports, and artifacts. |
+| `POLL_INTERVAL_SECONDS` | No | Telegram long-poll loop interval. |
+
+Only configured project keys are accepted. Telegram input cannot provide an arbitrary filesystem path or shell command.
+
 ### 3. Create Venv And Install Requirements
 
 ```powershell
@@ -275,12 +290,12 @@ py telegram_codex_controller\controller.py --self-test
 py -m py_compile telegram_codex_controller\controller.py
 ```
 
+GitHub Actions runs these same lightweight checks without Telegram credentials.
+
 ## Roadmap
 
-- `/train <alias>` generic whitelist local jobs
-- heartbeat notification
-- artifact manifest
-- image preview delivery
-- HTML/PDF mobile report
-- GitHub Actions self-test
-- YAML job definitions
+See [ROADMAP.md](ROADMAP.md).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Keep changes small, preserve the allowlist and approval model, and do not add arbitrary shell execution.

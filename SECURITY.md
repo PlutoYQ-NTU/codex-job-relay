@@ -24,6 +24,10 @@ API keys, private tokens, or other credentials to the bot.
   risk.
 - Keep the controller on a trusted local machine.
 - Keep job directories local and private.
+- Rotate the Telegram bot token if it appears in logs, reports, screenshots, or
+  command history.
+- Prefer least-privilege local project directories and disposable branches for
+  risky jobs.
 
 ## Job Logs And Artifacts
 
@@ -43,9 +47,12 @@ approval, and `subprocess.Popen([...], shell=False)`.
 Write and long-running jobs require approval. Dirty repositories become
 `blocked_repo_dirty` unless the user explicitly sends `/approve_anyway`.
 
+The relay is not a sandbox, not a permission boundary, and not a hosted service.
+Use operating-system permissions, backups, isolated worktrees, and manual review
+for sensitive work.
+
 ## Reporting Vulnerabilities
 
 If you find a security issue, please open a private report to the maintainer if
 available, or create a GitHub issue that describes the impact without including
 tokens, secrets, private logs, or exploit payloads.
-
